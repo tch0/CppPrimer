@@ -1,0 +1,24 @@
+# all files ignored, for all generated binary files
+*
+
+# track all directories
+!*/
+
+# .vscode configuration files
+!.vscode/launch.json
+!.vscode/tasks.json
+
+# track .gitignore .editorconfig
+!.gitignore
+!.editorconfig
+
+# track *.c *.h *.cpp source files
+!*.c
+!*.cpp
+!*.h
+
+# track makefiles
+!Makefile
+!makefile
+
+# add all specific files that need to be tracked here
