@@ -21,4 +21,7 @@
 !Makefile
 !makefile
 
+# track README.md
+!README.md
+
 # add all specific files that need to be tracked here
