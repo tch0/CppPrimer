@@ -1,17 +1,17 @@
 #include <exception>
 #include <stdexcept>
-#include <new>
-#include <typeinfo>
+#include <new> // for bad_alloc
+#include <typeinfo> // for bad_cast
 #include <iostream>
 using namespace std;
 
 // terminate mechanism
-// when an expetion throwd but not been catched, call std::terminate
+// when an expetion thrown but not been catched, call std::terminate
 // call set_terminate to customize the behaviour
 
 void handler()
 {
-    cout << "called handler() when expection throwed!" << endl;
+    cout << "called handler() when expection thrown!" << endl;
 }
 
 int main(int argc, char const *argv[])
