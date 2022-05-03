@@ -12,5 +12,6 @@ bool lengthCompare(const string& s1, const string& s2)
 int main(int argc, char const *argv[])
 {
     pf* cmp = lengthCompare;
+    cout << cmp("hello", "yes") << endl;
     return 0;
 }
