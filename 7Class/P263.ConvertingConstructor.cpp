@@ -21,7 +21,7 @@ private:
 
 int main(int argc, char const *argv[])
 {
-    Person kim("Kim"); // kim = "Kim" is not Ok, it could only convert once, using assignment in initialization will counted be a conversion.
+    Person kim("Kim"); // kim = "Kim" is not Ok, it could only convert once, using assignment in initialization will be counted as a conversion.
     Person ron = string("Ron"); // only call Person(const string& name)
     Person shego = Person("Shego"); // also only call Person(const string& name), compiler optimization?
     Person shego2 = shego; // call Person(const Person& s)
