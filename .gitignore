@@ -24,4 +24,7 @@
 # track README.md
 !README.md
 
+# track test .txt files
+!*.txt
+
 # add all specific files that need to be tracked here
