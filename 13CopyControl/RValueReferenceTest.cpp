@@ -56,6 +56,11 @@ public:
     }
 };
 
+TestClass f()
+{
+    return TestClass("tempret");
+}
+
 int main(int argc, char const *argv[])
 {
     int && t = 3;
@@ -89,6 +94,9 @@ int main(int argc, char const *argv[])
     cout << "Loc 4" << endl;
     TestClass("lhs") = TestClass("rhs");
 
+    cout << "Loc 5" << endl;
+    f();
     cout << "Loc end" << endl;
+    
     return 0;
 }
