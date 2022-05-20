@@ -41,7 +41,7 @@ int main(int argc, char const *argv[])
 {
     int i = 0;
     // flip1(g, i, 42); // T1 will be int&, T2 will be int&&, in filp1, int&& t1 can not bind to paramter int&& i in function g.
-    // because r-value reference is a l-value.
+    // because r-value reference itself is a variable which is a l-value.
 
     flip2(g, i, 42);
     int j = 42;
