@@ -19,7 +19,7 @@ void printElement(ostream& os, const string& t)
     os << '"' << t << '"';
 }
 
-// solution 1: calss template recursion
+// solution 1: class template recursion
 /*
 template<typename Tuple, size_t N>
 struct tuple_print
@@ -40,7 +40,7 @@ struct tuple_print<Tuple, 1>
 };
 */
 
-// solution 2: wrap size_t, function template specialization
+// solution 2: wrap size_t, function template recursion and overloading
 template<size_t> struct uint{}; // wrap size_t
 template<typename Tuple, size_t N>
 void print(ostream& os, const Tuple& t, uint<N>)
