@@ -88,5 +88,7 @@ int main(int argc, char const *argv[])
     using std::cout;
     // int cout = 10; // name conflict with std::cout.
     // std::cout << cout << std::endl;
+
+    // name lookup before type check
     return 0;
 }
