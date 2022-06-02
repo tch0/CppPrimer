@@ -114,8 +114,12 @@
 最后：
 - `std::move`仅仅只做一个左值（或者右值）到亡值的转换，不创建或绑定任何东西。
 - 右值引用基本上只用于函数参数中（其他情况基本都可以视为滥用）。除非使用模板实现类似`std::move`这种东西，否则不应该用于返回值中。
-- `return`语句中的局部自动变量被隐式地视为亡值，就算没有RVO/NRVO，移动构造函数也一定会被调用（如果他们存在的话）。见标准`[class.copy] p32`。
+- `return`语句中的局部自动变量被隐式地视为亡值，就算没有RVO/NRVO，移动构造函数也一定会被调用（如果他们存在的话）。
+    - 见标准`[class.copy] p32`。
+    >When the criteria for elision of a copy operation are met or would be met save for the fact that the source object is a function parameter, and the object to be copied is designated by an lvalue, overload resolution to select the constructor for the copy is first performed as if the object were designated by an rvalue. If overload resolution fails, or if the type of the first parameter of the selected constructor is not an rvalue reference to the object’s type (possibly cv-qualified), overload resolution is performed again, considering the object as an lvalue. [ Note: This two-stage overload resolution must be performed regardless of whether copy elision will occur. It determines the constructor to be called if elision is not performed, and the selected constructor must be accessible even if the call is elided. — end note ]
     - https://stackoverflow.com/questions/11088023/is-an-object-guaranteed-to-be-moved-when-it-is-returned
+    - https://zh.cppreference.com/w/cpp/language/return#.E6.B3.A8.E8.A7.A3
+- 因为存在RVO/NRVO，所以不应该返回`std::move`。
 
 参考：
 - https://zh.cppreference.com/w/cpp/language/value_category
@@ -124,6 +128,45 @@
 - 复制消除：https://zh.cppreference.com/w/cpp/language/copy_elision
     - 目的是减少拷贝次数，RVO/NRVO/构造时的复制省略。
     - g++中关闭优化：`-fno-elide-constructors`。
-    - 可能会有副作用，但这通常意味着你的设计存在问题。
 - https://stackoverflow.com/questions/4986673/c11-rvalues-and-move-semantics-confusion-return-statement
 
+## 复制消除(Copy Elision)
+
+文档：https://zh.cppreference.com/w/cpp/language/copy_elision
+
+省略赋值和移动构造函数的调用，产生零复制的按值传递语义。分为强制的复制/移动消除和非强制的复制/移动消除。即使复制/移动构造函数和析构函数拥有可观察的副作用也不会影响下列（所以保证程序不依赖这些副作用工作是程序员的责任）。
+
+**强制的复制/移动消除**：
+- 以下情况将省略类对象的复制/移动构造：
+    - return语句中，操作数是与函数返回类型相同的类类型的纯右值（忽略cv限定）。
+    ```C++
+    T f() {
+        return T();
+    }
+    
+    f(); // 仅调用一次 T 的默认构造函数
+    ```
+    - 对象初始化时，初始化器表达式是一个与变量类型相同的类类型纯右值（忽略cv限定）。
+    ```C++
+    T x = T(T(f())); // 仅调用一次 T 的默认构造函数以初始化 x
+    ```
+    只能在已知要初始化的对象不是可能重叠的子对象时应用此规则，也就是说如果在构造函数初始化列表中，那么就不会做。
+
+- 注意：C++17中已经规定：不再有临时量被用于赋值、移动。也就是当临时量用于赋值和移动时，不再有临时量被实例化出来，将直接实例化最终的对象（或者说传递未实例化的值）。也就是说上述的复制消除已经不再是优化，而已经是标准是语义确定了的。
+
+**非强制的复制/移动消除**：
+- 下列情况允许但是不要求编译器省略类对象的复制和移动：
+    - return语句中，操作数是非参数非`volatile`非`catch`子句形参的局部变量的名字，且其与函数返回值类型（忽略cv限定）相同。这种复制消除称为**具名返回值优化**（**NRVO**，named return value optimization）。
+    - **RVO**：**返回值优化**，即是上面强制省略中的第一条（C++17后强制，C++17前非强制）。
+    - throw表达式中，源对象是无名临时量且与目标对象具有相同类型（忽略cv限定）时，并且其非并非函数形参或者`catch`子句形参，且其作用域不延伸超过最内层的`try`块时。
+    - `catch` 子句中，当实参与抛出的异常对象具有相同类型（忽略 cv 限定）时，省略异常对象的复制，而该 `catch` 子句体直接访问该异常对象，如同按引用捕获它一样（不可能从异常对象移动，因为它始终是左值）。如果这种复制消除会因为除了跳过该 `catch` 子句形参的复制构造函数和析构函数之外的任何原因，导致程序的可观察行为发生改变，则它被禁止（例如，当修改了 `catch` 子句的实参，并以 `throw` 重新抛出异常对象时）。
+    - 在协程中，可以消除将形参向协程状态内的复制/移动，只要除了对形参的构造函数与析构函数的调用被忽略以外，不改变程序的行为即可。这种情形可以在暂停点后始终不使用形参，或者整个协程状态本就始终不在堆上分配时出现。（C++20起，待理解）
+
+注意：
+- 可以将多次复制消除连锁起来，消除多次复制。
+- 在常量表达式和常量初始化中，保证进行RVO，禁止NRVO。
+- 赋值消除是允许可观察副作用的唯一得到允许的两种优化形式之一，另一个是[分配消除与扩展（C++14）](https://zh.cppreference.com/w/cpp/language/new#.E5.88.86.E9.85.8D)。
+- 一些编译器可能不会在所有场合进行复制消除（如debug模式下），依赖于复制/移动构造函数和析构函数的副作用的程序是不可移植的。
+- 在return和throw语句中，如果不进行复制消除，但满足或本应满足复制消除的条件，即使对象由左值表示，编译器也将尝试使用移动构造函数。
+    - 上面已经提到过了，细节将[return语句](https://zh.cppreference.com/w/cpp/language/return#.E6.B3.A8.E8.A7.A3)。
+    - 会做两次重载决议，第一次将返回值假设为右值表达式。如果失败则会把表达式当做左值再做一次。
