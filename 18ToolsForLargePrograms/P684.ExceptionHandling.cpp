@@ -85,8 +85,8 @@ int main(int argc, char const *argv[])
     // Foo("foo", 0); // will terminate
 
     // noexcept specification / noexcept expression/operator
-    cout << boolalpha << noexcept(bar) << endl; // true, bar means the no-paramter one
-    cout << noexcept(bar(0)) << endl;
+    cout << boolalpha << noexcept(bar()) << endl; // true, bar means the no-paramter one
+    cout << noexcept(bar(0)) << endl; // false
     cout << noexcept(buz()) << endl; // false
 
     void (*pf)();
