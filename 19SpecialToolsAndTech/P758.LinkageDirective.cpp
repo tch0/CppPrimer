@@ -18,9 +18,8 @@ void bar()
     cout << "void bar()" << endl;
 }
 
-int main(int argc, char const *argv[])
+int main(int argc, char const *argv[]) 
 {
-    1;
     FC cpf = foo;
     cpf();
     void (*pf)() = bar;
