@@ -105,7 +105,7 @@
 - 字符串字面值是左值。其他字面量都是纯右值。
 - 枚举值是纯右值，不可取地址。
 - 函数名是左值，可以取地址。
-- 返回值类型是函数的右值引用的函数调用表示是左值，转换为函数类型右值引用的转型表达式同理。C++11引入，为什么，怎么用不知。（方便取地址，转换为函数指针？）
+- 返回值类型是函数的右值引用的函数调用表达式是左值，转换为函数类型右值引用的转型表达式同理。C++11引入，为什么，怎么用不知。（方便取地址，转换为函数指针？）
 - this指针是纯右值。不可修改，也不可再取地址。
 - lambda表达式是纯右值。
 - 右值通过对象取成员`a.m a.*mp`。
@@ -119,7 +119,7 @@
     >When the criteria for elision of a copy operation are met or would be met save for the fact that the source object is a function parameter, and the object to be copied is designated by an lvalue, overload resolution to select the constructor for the copy is first performed as if the object were designated by an rvalue. If overload resolution fails, or if the type of the first parameter of the selected constructor is not an rvalue reference to the object’s type (possibly cv-qualified), overload resolution is performed again, considering the object as an lvalue. [ Note: This two-stage overload resolution must be performed regardless of whether copy elision will occur. It determines the constructor to be called if elision is not performed, and the selected constructor must be accessible even if the call is elided. — end note ]
     - https://stackoverflow.com/questions/11088023/is-an-object-guaranteed-to-be-moved-when-it-is-returned
     - https://zh.cppreference.com/w/cpp/language/return#.E6.B3.A8.E8.A7.A3
-- 因为存在RVO/NRVO，所以不应该返回`std::move`。
+- 因为存在RVO/NRVO，所以不应该返回`std::move`（会影响RVO/NRVO优化，且返回值如果是左值本身就会被先当右值处理）。
 
 参考：
 - https://zh.cppreference.com/w/cpp/language/value_category
@@ -165,7 +165,7 @@
 注意：
 - 可以将多次复制消除连锁起来，消除多次复制。
 - 在常量表达式和常量初始化中，保证进行RVO，禁止NRVO。
-- 赋值消除是允许可观察副作用的唯一得到允许的两种优化形式之一，另一个是[分配消除与扩展（C++14）](https://zh.cppreference.com/w/cpp/language/new#.E5.88.86.E9.85.8D)。
+- 复制消除是允许可观察副作用的唯一得到允许的两种优化形式之一，另一个是[分配消除与扩展（C++14）](https://zh.cppreference.com/w/cpp/language/new#.E5.88.86.E9.85.8D)。
 - 一些编译器可能不会在所有场合进行复制消除（如debug模式下），依赖于复制/移动构造函数和析构函数的副作用的程序是不可移植的。
 - 在return和throw语句中，如果不进行复制消除，但满足或本应满足复制消除的条件，即使对象由左值表示，编译器也将尝试使用移动构造函数。
     - 上面已经提到过了，细节将[return语句](https://zh.cppreference.com/w/cpp/language/return#.E6.B3.A8.E8.A7.A3)。
